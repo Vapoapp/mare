@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Operacional de Maré — Porto do Rio</title>
+  <style>
+    :root {
+      --bg: #071826;
+      --panel: #0d2436;
+      --panel-2: #12304a;
+      --text: #eef6fb;
+      --muted: #a9c0d3;
+      --line: rgba(255,255,255,0.08);
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(56,189,248,0.15), transparent 28%),
+        linear-gradient(180deg, #05121d 0%, #071826 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .title p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .badge {
+      background: rgba(56,189,248,0.12);
+      color: #bdeafe;
+      border: 1px solid rgba(56,189,248,0.25);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(18,48,74,0.9), rgba(13,36,54,0.95));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.28);
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    .controls,
+    .ops-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .controls { margin-bottom: 18px; }
+    .ops-controls { margin: 4px 0 18px; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #0b2233;
+      color: #eef6fb;
+      padding: 12px 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .field select option {
+      background: #0b2233;
+      color: #eef6fb;
+    }
+
+    .field select option:checked {
+      background: #1e3a5a;
+      color: #ffffff;
+    }
+
+    .section-label {
+      margin: 18px 0 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 118px;
+    }
+
+    .card .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .big {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .trend.up { color: var(--good); }
+    .trend.down { color: var(--bad); }
+    .trend.flat { color: var(--warn); }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .status.good { background: rgba(34,197,94,0.12); color: #b7f7ca; border: 1px solid rgba(34,197,94,0.25); }
+    .status.warn { background: rgba(245,158,11,0.12); color: #fde1a7; border: 1px solid rgba(245,158,11,0.25); }
+    .status.bad  { background: rgba(239,68,68,0.12); color: #ffc3c3; border: 1px solid rgba(239,68,68,0.25); }
+
+    .window-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .window-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .window-main {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .window-sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .window-times {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .window-stat {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+    }
+
+    .window-stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .window-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .events {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+    }
+
+    .event strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .event span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .event .value {
+      text-align: right;
+      min-width: 110px;
+    }
+
+    .mini-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .timeline {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+    }
+
+    .timeline svg {
+      width: 100%;
+      height: 230px;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 6px;
+      transform: translateY(1px);
+    }
+
+    .footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls,
+      .ops-controls,
+      .cards,
+      .window-times {
+        grid-template-columns: 1fr;
+      }
+
+      .big { font-size: 28px; }
+      .window-main { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="title">
+        <h1>Painel Operacional de Maré</h1>
+        <p>Consulta rápida de baixa-mar, preamar, tendência e amplitude no ETA do porto.</p>
+      </div>
+      <div class="badge" id="portBadge">Porto do Rio de Janeiro — Ilha Fiscal</div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Consulta operacional</h2>
+        <div class="controls">
+          <div class="field">
+            <label for="porto">Porto</label>
+            <select id="porto">
+              <option value="barra-norte-arco-lamoso">01 — Barra Norte — Arco Lamoso</option>
+              <option value="igarape-grande-do-curua">02 — Igarapé Grande do Curuá</option>
+              <option value="porto-de-santana-cia-docas-de-santana">03 — Porto de Santana — Cia Docas de Santana</option>
+              <option value="ilha-dos-guaras">04 — Ilha dos Guarás</option>
+              <option value="fundeadouro-de-salinopolis">05 — Fundeadouro de Salinópolis</option>
+              <option value="ilha-do-mosqueiro">06 — Ilha do Mosqueiro</option>
+              <option value="porto-de-belem">07 — Porto de Belém</option>
+              <option value="porto-de-vila-do-conde">08 — Porto de Vila do Conde</option>
+              <option value="atracadouro-de-breves">09 — Atracadouro de Breves</option>
+              <option value="sao-luis">10 — São Luís</option>
+              <option value="terminal-da-ponta-da-madeira">11 — Terminal da Ponta da Madeira</option>
+              <option value="porto-de-itaqui">12 — Porto de Itaqui</option>
+              <option value="terminal-da-alumar">13 — Terminal da Alumar</option>
+              <option value="porto-de-tutoia">14 — Porto de Tutóia</option>
+              <option value="porto-de-luis-correia">15 — Porto de Luís Correia</option>
+              <option value="terminal-portuario-do-pecem">16 — Terminal Portuário do Pecém</option>
+              <option value="porto-de-mucuripe-fortaleza">17 — Porto de Mucuripe — Fortaleza</option>
+              <option value="arquipelago-de-fernando-de-noronha">18 — Arquipélago de Fernando de Noronha</option>
+              <option value="porto-de-areia-branca-termisa">19 — Porto de Areia Branca — Termisa</option>
+              <option value="porto-de-macau">20 — Porto de Macau</option>
+              <option value="porto-de-guamare">21 — Porto de Guamaré</option>
+              <option value="porto-de-natal-comando-do-3o-distrito-naval">22 — Porto de Natal — Comando do 3º Distrito Naval</option>
+              <option value="porto-de-cabedelo">23 — Porto de Cabedelo</option>
+              <option value="porto-do-recife">24 — Porto do Recife</option>
+              <option value="porto-de-suape">25 — Porto de Suape</option>
+              <option value="porto-de-maceio">26 — Porto de Maceió</option>
+              <option value="terminal-maritimo-inacio-barbosa">27 — Terminal Marítimo Inácio Barbosa</option>
+              <option value="capitania-dos-portos-de-sergipe">28 — Capitania dos Portos de Sergipe</option>
+              <option value="porto-de-madre-de-deus">29 — Porto de Madre de Deus</option>
+              <option value="porto-de-aratu-base-naval">30 — Porto de Aratu — Base Naval</option>
+              <option value="porto-de-salvador">31 — Porto de Salvador</option>
+              <option value="porto-de-ilheus-malhado">32 — Porto de Ilhéus — Malhado</option>
+              <option value="terminal-de-barra-do-riacho">33 — Terminal de Barra do Riacho</option>
+              <option value="porto-de-tubarao">34 — Porto de Tubarão</option>
+              <option value="porto-de-vitoria">35 — Porto de Vitória</option>
+              <option value="ilha-da-trindade">36 — Ilha da Trindade</option>
+              <option value="terminal-da-ponta-do-ubu">37 — Terminal da Ponta do Ubu</option>
+              <option value="porto-do-acu">38 — Porto do Açu</option>
+              <option value="terminal-maritimo-de-imbetiba">39 — Terminal Marítimo de Imbetiba</option>
+              <option value="porto-do-rio-de-janeiro-ilha-fiscal" selected>40 — Rio de Janeiro — Ilha Fiscal</option>
+              <option value="porto-de-itaguai">41 — Porto de Itaguaí</option>
+              <option value="porto-do-forno">42 — Porto do Forno</option>
+              <option value="terminal-da-ilha-guaiba">43 — Terminal da Ilha Guaíba</option>
+              <option value="porto-de-angra-dos-reis">44 — Porto de Angra dos Reis</option>
+              <option value="porto-de-sao-sebastiao">45 — Porto de São Sebastião</option>
+              <option value="porto-de-santos">46 — Porto de Santos</option>
+              <option value="terminal-portuario-da-ponta-do-felix">47 — Terminal Portuário da Ponta do Félix</option>
+              <option value="porto-de-paranagua-cais-oeste">48 — Porto de Paranaguá — Cais Oeste</option>
+              <option value="barra-de-paranagua-canal-sueste">49 — Barra de Paranaguá — Canal Sueste</option>
+              <option value="barra-de-paranagua-canal-da-galheta">50 — Barra de Paranaguá — Canal da Galheta</option>
+              <option value="porto-de-sao-francisco-do-sul">51 — Porto de São Francisco do Sul</option>
+              <option value="porto-de-itajai">52 — Porto de Itajaí</option>
+              <option value="porto-de-florianopolis">53 — Porto de Florianópolis</option>
+              <option value="porto-de-imbituba">54 — Porto de Imbituba</option>
+              <option value="porto-do-rio-grande">55 — Porto do Rio Grande</option>
+              <option value="fundeadouro-da-estacao-antartica-comandante-ferraz">56 — Fundeadouro Estação Antártica Comandante Ferraz</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="data">Data</label>
+            <input id="data" type="date" value="2026-03-09" />
+          </div>
+          <div class="field">
+            <label for="eta">Hora</label>
+            <input id="eta" type="time" value="15:00" />
+          </div>
+        </div>
+
+        <div class="section-label">Parâmetros operacionais</div>
+        <div class="ops-controls">
+          <div class="field">
+            <label for="channelDepth">Profundidade do canal (m)</label>
+            <input id="channelDepth" type="number" min="0" step="0.1" value="7.2" />
+          </div>
+          <div class="field">
+            <label for="draft">Calado da embarcação (m)</label>
+            <input id="draft" type="number" min="0" step="0.1" value="5.8" />
+          </div>
+          <div class="field">
+            <label for="ukcMin">UKC mínimo (m)</label>
+            <input id="ukcMin" type="number" min="0" step="0.1" value="1.0" />
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="label">Maré no ETA</div>
+            <div id="tideAtEta" class="big">0.90 m</div>
+            <div id="trendText" class="sub trend up">↑ Maré enchendo</div>
+          </div>
+          <div class="card">
+            <div class="label">Amplitude do ciclo</div>
+            <div id="amplitude" class="big">0.68 m</div>
+            <div id="amplitudeText" class="sub">Entre a baixamar anterior e a preamar seguinte</div>
+          </div>
+          <div class="card">
+            <div class="label">Baixamar de referência</div>
+            <div id="lowRef" class="big">10:31</div>
+            <div id="lowRefAlt" class="sub">0.43 m</div>
+          </div>
+          <div class="card">
+            <div class="label">Preamar de referência</div>
+            <div id="highRef" class="big">18:06</div>
+            <div id="highRefAlt" class="sub">1.11 m</div>
+          </div>
+          <div class="card">
+            <div class="label">Distância do ETA para a preamar</div>
+            <div id="etaToHigh" class="big">3h06</div>
+            <div id="etaToHighText" class="sub">ETA antes da próxima preamar</div>
+          </div>
+          <div class="card">
+            <div class="label">Lâmina d’água no ETA</div>
+            <div id="availableDepth" class="big">8.10 m</div>
+            <div class="sub">Profundidade do canal + maré no horário</div>
+          </div>
+          <div class="card">
+            <div class="label">UKC estimado no ETA</div>
+            <div id="ukcValue" class="big">2.30 m</div>
+            <div id="ukcStatus" class="sub">Acima do UKC mínimo definido</div>
+          </div>
+          <div class="card">
+            <div class="label">Taxa de subida da maré</div>
+            <div id="tideRate" class="big">0.09 m/h</div>
+            <div id="tideRateText" class="sub">Velocidade estimada da variação</div>
+          </div>
+        </div>
+
+        <div id="status" class="status good">🟢 Janela favorável</div>
+
+        <div class="window-box">
+          <div class="window-title">Janela operacional</div>
+          <div id="windowMain" class="window-main">Aberta no ETA</div>
+          <div id="windowSub" class="window-sub">A lâmina d’água disponível atende calado + UKC mínimo no horário consultado.</div>
+          <div class="window-times">
+            <div class="window-stat">
+              <div class="window-stat-label">Janela abre</div>
+              <div id="windowOpen" class="window-stat-value">14:12</div>
+            </div>
+            <div class="window-stat">
+              <div class="window-stat-label">Janela fecha</div>
+              <div id="windowClose" class="window-stat-value">20:03</div>
+            </div>
+            <div class="window-stat">
+              <div class="window-stat-label">Tempo de janela</div>
+              <div id="windowDuration" class="window-stat-value">5h51</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <svg id="chart" viewBox="0 0 760 230" preserveAspectRatio="none" aria-label="Curva de maré"></svg>
+          <div class="legend">
+            <div><span class="dot" style="background:#38bdf8"></span>Curva estimada da maré</div>
+            <div><span class="dot" style="background:#ffffff"></span>Eventos observados</div>
+            <div><span class="dot" style="background:#22c55e"></span>ETA</div>
+            <div><span class="dot" style="background:#ef4444"></span>Profundidade mínima necessária</div>
+          </div>
+          </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Resumo imediato</h2>
+        <div class="events" id="eventsBox"></div>
+        <div class="mini-note" id="calcMethodNote">
+          Cálculo da maré no ETA pelo método sinusoidal contínuo equivalente ao procedimento da DG6-62. Para portos ao sul de Vitória, o painel mantém fallback linear, conforme observação do material de referência.
+        </div>
+        <div class="footer">
+          
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    let tideData = {};
+    let currentPortMeta = null;
+
+    const PORTS = {
+      'barra-norte-arco-lamoso': { name: 'Barra Norte — Arco Lamoso', file: 'data/tides/barra-norte-arco-lamoso.json', method: 'sinusoidal' },
+      'igarape-grande-do-curua': { name: 'Igarapé Grande do Curuá', file: 'data/tides/igarape-grande-do-curua.json', method: 'sinusoidal' },
+      'porto-de-santana-cia-docas-de-santana': { name: 'Porto de Santana — Cia Docas de Santana', file: 'data/tides/porto-de-santana-cia-docas-de-santana.json', method: 'sinusoidal' },
+      'ilha-dos-guaras': { name: 'Ilha dos Guarás', file: 'data/tides/ilha-dos-guaras.json', method: 'sinusoidal' },
+      'fundeadouro-de-salinopolis': { name: 'Fundeadouro de Salinópolis', file: 'data/tides/fundeadouro-de-salinopolis.json', method: 'sinusoidal' },
+      'ilha-do-mosqueiro': { name: 'Ilha do Mosqueiro', file: 'data/tides/ilha-do-mosqueiro.json', method: 'sinusoidal' },
+      'porto-de-belem': { name: 'Porto de Belém', file: 'data/tides/porto-de-belem.json', method: 'sinusoidal' },
+      'porto-de-vila-do-conde': { name: 'Porto de Vila do Conde', file: 'data/tides/porto-de-vila-do-conde.json', method: 'sinusoidal' },
+      'atracadouro-de-breves': { name: 'Atracadouro de Breves', file: 'data/tides/atracadouro-de-breves.json', method: 'sinusoidal' },
+      'sao-luis': { name: 'São Luís', file: 'data/tides/sao-luis.json', method: 'sinusoidal' },
+      'terminal-da-ponta-da-madeira': { name: 'Terminal da Ponta da Madeira', file: 'data/tides/terminal-da-ponta-da-madeira.json', method: 'sinusoidal' },
+      'porto-de-itaqui': { name: 'Porto de Itaqui', file: 'data/tides/porto-de-itaqui.json', method: 'sinusoidal' },
+      'terminal-da-alumar': { name: 'Terminal da Alumar', file: 'data/tides/terminal-da-alumar.json', method: 'sinusoidal' },
+      'porto-de-tutoia': { name: 'Porto de Tutóia', file: 'data/tides/porto-de-tutoia.json', method: 'sinusoidal' },
+      'porto-de-luis-correia': { name: 'Porto de Luís Correia', file: 'data/tides/porto-de-luis-correia.json', method: 'sinusoidal' },
+      'terminal-portuario-do-pecem': { name: 'Terminal Portuário do Pecém', file: 'data/tides/terminal-portuario-do-pecem.json', method: 'sinusoidal' },
+      'porto-de-mucuripe-fortaleza': { name: 'Porto de Mucuripe — Fortaleza', file: 'data/tides/porto-de-mucuripe-fortaleza.json', method: 'sinusoidal' },
+      'arquipelago-de-fernando-de-noronha': { name: 'Arquipélago de Fernando de Noronha', file: 'data/tides/arquipelago-de-fernando-de-noronha.json', method: 'sinusoidal' },
+      'porto-de-areia-branca-termisa': { name: 'Porto de Areia Branca — Termisa', file: 'data/tides/porto-de-areia-branca-termisa.json', method: 'sinusoidal' },
+      'porto-de-macau': { name: 'Porto de Macau', file: 'data/tides/porto-de-macau.json', method: 'sinusoidal' },
+      'porto-de-guamare': { name: 'Porto de Guamaré', file: 'data/tides/porto-de-guamare.json', method: 'sinusoidal' },
+      'porto-de-natal-comando-do-3o-distrito-naval': { name: 'Porto de Natal — Comando do 3º Distrito Naval', file: 'data/tides/porto-de-natal-comando-do-3o-distrito-naval.json', method: 'sinusoidal' },
+      'porto-de-cabedelo': { name: 'Porto de Cabedelo', file: 'data/tides/porto-de-cabedelo.json', method: 'sinusoidal' },
+      'porto-do-recife': { name: 'Porto do Recife', file: 'data/tides/porto-do-recife.json', method: 'sinusoidal' },
+      'porto-de-suape': { name: 'Porto de Suape', file: 'data/tides/porto-de-suape.json', method: 'sinusoidal' },
+      'porto-de-maceio': { name: 'Porto de Maceió', file: 'data/tides/porto-de-maceio.json', method: 'sinusoidal' },
+      'terminal-maritimo-inacio-barbosa': { name: 'Terminal Marítimo Inácio Barbosa', file: 'data/tides/terminal-maritimo-inacio-barbosa.json', method: 'sinusoidal' },
+      'capitania-dos-portos-de-sergipe': { name: 'Capitania dos Portos de Sergipe', file: 'data/tides/capitania-dos-portos-de-sergipe.json', method: 'sinusoidal' },
+      'porto-de-madre-de-deus': { name: 'Porto de Madre de Deus', file: 'data/tides/porto-de-madre-de-deus.json', method: 'sinusoidal' },
+      'porto-de-aratu-base-naval': { name: 'Porto de Aratu — Base Naval', file: 'data/tides/porto-de-aratu-base-naval.json', method: 'sinusoidal' },
+      'porto-de-salvador': { name: 'Porto de Salvador', file: 'data/tides/porto-de-salvador.json', method: 'sinusoidal' },
+      'porto-de-ilheus-malhado': { name: 'Porto de Ilhéus — Malhado', file: 'data/tides/porto-de-ilheus-malhado.json', method: 'sinusoidal' },
+      'terminal-de-barra-do-riacho': { name: 'Terminal de Barra do Riacho', file: 'data/tides/terminal-de-barra-do-riacho.json', method: 'sinusoidal' },
+      'porto-de-tubarao': { name: 'Porto de Tubarão', file: 'data/tides/porto-de-tubarao.json', method: 'sinusoidal' },
+      'porto-de-vitoria': { name: 'Porto de Vitória', file: 'data/tides/porto-de-vitoria.json', method: 'sinusoidal' },
+      'ilha-da-trindade': { name: 'Ilha da Trindade', file: 'data/tides/ilha-da-trindade.json', method: 'linear' },
+      'terminal-da-ponta-do-ubu': { name: 'Terminal da Ponta do Ubu', file: 'data/tides/terminal-da-ponta-do-ubu.json', method: 'linear' },
+      'porto-do-acu': { name: 'Porto do Açu', file: 'data/tides/porto-do-acu.json', method: 'linear' },
+      'terminal-maritimo-de-imbetiba': { name: 'Terminal Marítimo de Imbetiba', file: 'data/tides/terminal-maritimo-de-imbetiba.json', method: 'linear' },
+      'porto-do-rio-de-janeiro-ilha-fiscal': { name: 'Porto do Rio de Janeiro — Ilha Fiscal', file: 'data/tides/porto-do-rio-de-janeiro-ilha-fiscal.json', method: 'linear' },
+      'porto-de-itaguai': { name: 'Porto de Itaguaí', file: 'data/tides/porto-de-itaguai.json', method: 'linear' },
+      'porto-do-forno': { name: 'Porto do Forno', file: 'data/tides/porto-do-forno.json', method: 'linear' },
+      'terminal-da-ilha-guaiba': { name: 'Terminal da Ilha Guaíba', file: 'data/tides/terminal-da-ilha-guaiba.json', method: 'linear' },
+      'porto-de-angra-dos-reis': { name: 'Porto de Angra dos Reis', file: 'data/tides/porto-de-angra-dos-reis.json', method: 'linear' },
+      'porto-de-sao-sebastiao': { name: 'Porto de São Sebastião', file: 'data/tides/porto-de-sao-sebastiao.json', method: 'linear' },
+      'porto-de-santos': { name: 'Porto de Santos', file: 'data/tides/porto-de-santos.json', method: 'linear' },
+      'terminal-portuario-da-ponta-do-felix': { name: 'Terminal Portuário da Ponta do Félix', file: 'data/tides/terminal-portuario-da-ponta-do-felix.json', method: 'linear' },
+      'porto-de-paranagua-cais-oeste': { name: 'Porto de Paranaguá — Cais Oeste', file: 'data/tides/porto-de-paranagua-cais-oeste.json', method: 'linear' },
+      'barra-de-paranagua-canal-sueste': { name: 'Barra de Paranaguá — Canal Sueste', file: 'data/tides/barra-de-paranagua-canal-sueste.json', method: 'linear' },
+      'barra-de-paranagua-canal-da-galheta': { name: 'Barra de Paranaguá — Canal da Galheta', file: 'data/tides/barra-de-paranagua-canal-da-galheta.json', method: 'linear' },
+      'porto-de-sao-francisco-do-sul': { name: 'Porto de São Francisco do Sul', file: 'data/tides/porto-de-sao-francisco-do-sul.json', method: 'linear' },
+      'porto-de-itajai': { name: 'Porto de Itajaí', file: 'data/tides/porto-de-itajai.json', method: 'linear' },
+      'porto-de-florianopolis': { name: 'Porto de Florianópolis', file: 'data/tides/porto-de-florianopolis.json', method: 'linear' },
+      'porto-de-imbituba': { name: 'Porto de Imbituba', file: 'data/tides/porto-de-imbituba.json', method: 'linear' },
+      'porto-do-rio-grande': { name: 'Porto do Rio Grande', file: 'data/tides/porto-do-rio-grande.json', method: 'linear' },
+      'fundeadouro-da-estacao-antartica-comandante-ferraz': { name: 'Fundeadouro da Estação Antártica Comandante Ferraz', file: 'data/tides/fundeadouro-da-estacao-antartica-comandante-ferraz.json', method: 'linear' }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    let currentEtaMin = 0;
+
+    function timeToMinutes(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function minutesToTime(total) {
+      const safe = Math.max(0, Math.min(24 * 60, total));
+      const h = Math.floor(safe / 60);
+      const m = safe % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+
+    function formatMeters(v) {
+      return `${v.toFixed(2)} m`;
+    }
+
+    function formatDuration(totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours}h${String(minutes).padStart(2, '0')}`;
+    }
+
+    function formatHourDifference(targetMinute, referenceMinute) {
+      const diff = targetMinute - referenceMinute;
+      const abs = Math.abs(diff);
+      const hours = Math.floor(abs / 60);
+      const minutes = abs % 60;
+      return {
+        text: `${hours}h${String(minutes).padStart(2, '0')}`,
+        direction: diff >= 0 ? 'ETA antes da próxima preamar' : 'ETA após a preamar de referência'
+      };
+    }
+
+    function formatRate(rateMetersPerHour) {
+      return `${Math.abs(rateMetersPerHour).toFixed(2)} m/h`;
+    }
+
+    function formatSignedDelay(minutes) {
+      if (minutes === 0) return 'no horário ideal';
+      const abs = Math.abs(minutes);
+      const h = Math.floor(abs / 60);
+      const m = abs % 60;
+      const txt = h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m} min`;
+      return minutes > 0 ? `antecipar ${txt}` : `atrasar ${txt}`;
+    }
+
+    function getDateKeyOffset(dateStr, offsetDays) {
+      const date = new Date(`${dateStr}T00:00:00`);
+      date.setDate(date.getDate() + offsetDays);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function buildExtendedEvents(dateStr, events) {
+      const extended = events.map(e => ({ ...e, minute: timeToMinutes(e.time) }));
+      const prevDate = getDateKeyOffset(dateStr, -1);
+      const nextDate = getDateKeyOffset(dateStr, 1);
+      const prevEvents = tideData[prevDate] || [];
+      const nextEvents = tideData[nextDate] || [];
+
+      if (prevEvents.length) {
+        const prevLast = prevEvents[prevEvents.length - 1];
+        extended.unshift({ ...prevLast, minute: timeToMinutes(prevLast.time) - 1440 });
+      }
+
+      if (nextEvents.length) {
+        const nextFirst = nextEvents[0];
+        extended.push({ ...nextFirst, minute: timeToMinutes(nextFirst.time) + 1440 });
+      }
+
+      return extended.sort((a, b) => a.minute - b.minute);
+    }
+
+    function getSegment(events, etaMin) {
+      if (!events.length) return null;
+      if (events.length === 1) return [events[0], events[0]];
+      if (etaMin <= events[0].minute) return [events[0], events[1]];
+      for (let i = 0; i < events.length - 1; i++) {
+        const a = events[i].minute;
+        const b = events[i + 1].minute;
+        if (etaMin >= a && etaMin <= b) return [events[i], events[i + 1]];
+      }
+      return [events[events.length - 2], events[events.length - 1]];
+    }
+
+    function interpolateHeight(a, b, etaMin) {
+      const ta = a.minute;
+      const tb = b.minute;
+      if (tb === ta) return a.height;
+      const ratio = Math.max(0, Math.min(1, (etaMin - ta) / (tb - ta)));
+
+      if ((currentPortMeta?.method || 'linear') === 'sinusoidal') {
+        const frac = (1 - Math.cos(Math.PI * ratio)) / 2;
+        return a.height + (b.height - a.height) * frac;
+      }
+
+      return a.height + (b.height - a.height) * ratio;
+    }
+
+    function trendBetween(a, b) {
+      if (b.height > a.height) return 'up';
+      if (b.height < a.height) return 'down';
+      return 'flat';
+    }
+
+    function statusForHeight(availableDepth, ukcClearance, requiredDepth) {
+      if (ukcClearance >= 0.5 && availableDepth >= requiredDepth) return { cls: 'good', text: '🟢 Janela favorável' };
+      if (ukcClearance >= 0 && availableDepth >= requiredDepth) return { cls: 'warn', text: '🟡 Operação com atenção' };
+      return { cls: 'bad', text: '🔴 Janela fechada' };
+    }
+
+    function eventMinute(event) {
+      return typeof event.minute === 'number' ? event.minute : timeToMinutes(event.time);
+    }
+
+    function findPreviousLow(events, etaMin) {
+      const lows = events.filter(e => e.type === 'low' && eventMinute(e) <= etaMin);
+      return lows[lows.length - 1] || events.find(e => e.type === 'low');
+    }
+
+    function findNextLow(events, etaMin) {
+      return events.find(e => e.type === 'low' && eventMinute(e) >= etaMin) || events.filter(e => e.type === 'low').slice(-1)[0];
+    }
+
+    function findPreviousHigh(events, etaMin) {
+      const highs = events.filter(e => e.type === 'high' && eventMinute(e) <= etaMin);
+      return highs[highs.length - 1] || events.find(e => e.type === 'high');
+    }
+
+    function findNextHigh(events, etaMin) {
+      return events.find(e => e.type === 'high' && eventMinute(e) >= etaMin) || events.filter(e => e.type === 'high').slice(-1)[0];
+    }
+
+    function calculateWindow(events, channelDepth, draft, ukcMin) {
+      const requiredDepth = draft + ukcMin;
+      let currentStart = null;
+      const segments = [];
+
+      for (let minute = 0; minute <= 24 * 60; minute += 1) {
+        const segment = getSegment(events, minute);
+        if (!segment) continue;
+        const [a, b] = segment;
+        const tide = interpolateHeight(a, b, minute);
+        const availableDepth = channelDepth + tide;
+        const isOpen = availableDepth >= requiredDepth;
+
+        if (isOpen && currentStart === null) currentStart = minute;
+        if (!isOpen && currentStart !== null) {
+          segments.push({ start: currentStart, end: minute });
+          currentStart = null;
+        }
+      }
+
+      if (currentStart !== null) segments.push({ start: currentStart, end: 24 * 60 });
+      if (!segments.length) return null;
+
+      const containingEta = segments.find(seg => seg.start <= currentEtaMin && currentEtaMin <= seg.end);
+      const nextFuture = segments.find(seg => seg.start >= currentEtaMin);
+      const chosen = containingEta || nextFuture || segments[segments.length - 1];
+      const referenceMinute = chosen.start;
+
+      return {
+        start: chosen.start,
+        end: chosen.end,
+        duration: Math.max(0, chosen.end - chosen.start),
+        containsEta: Boolean(containingEta),
+        etaAdjustment: referenceMinute - currentEtaMin,
+        requiredDepth,
+        channelDepth
+      };
+    }
+
+    function renderEvents(summary) {
+      const trendMap = {
+        up: '↑ Maré enchendo',
+        down: '↓ Maré vazando',
+        flat: '→ Estável'
+      };
+
+      $('eventsBox').innerHTML = `
+        <div class="event">
+          <div>
+            <strong>Hora</strong>
+            <span>${summary.date} às ${summary.eta}</span>
+          </div>
+          <div class="value">
+            <strong>${formatMeters(summary.tideAtEta)}</strong>
+            <span>${trendMap[summary.trend]}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Próxima preamar</strong>
+            <span>Horário crítico de cheia</span>
+          </div>
+          <div class="value">
+            <strong>${summary.nextHigh.time}</strong>
+            <span>${formatMeters(summary.nextHigh.height)}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Distância ETA → preamar</strong>
+            <span>Referência para planejamento</span>
+          </div>
+          <div class="value">
+            <strong>${summary.etaToHighText}</strong>
+            <span>${summary.etaToHighDetail}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Próxima baixamar</strong>
+            <span>Horário crítico de baixa</span>
+          </div>
+          <div class="value">
+            <strong>${summary.nextLow.time}</strong>
+            <span>${formatMeters(summary.nextLow.height)}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Profundidade disponível</strong>
+            <span>Canal + maré no ETA</span>
+          </div>
+          <div class="value">
+            <strong>${formatMeters(summary.availableDepth)}</strong>
+            <span>Necessário: ${formatMeters(summary.requiredDepth)}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>UKC estimado</strong>
+            <span>Folga líquida abaixo da quilha</span>
+          </div>
+          <div class="value">
+            <strong>${formatMeters(summary.ukc)}</strong>
+            <span>Mínimo: ${formatMeters(summary.ukcMin)}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Taxa da maré</strong>
+            <span>Variação estimada no trecho atual</span>
+          </div>
+          <div class="value">
+            <strong>${summary.tideRate}</strong>
+            <span>${summary.tideRateDetail}</span>
+          </div>
+        </div>
+        <div class="event">
+          <div>
+            <strong>Amplitude / Tipo de maré</strong>
+            <span>Ciclo usado na análise</span>
+          </div>
+          <div class="value">
+            <strong>${formatMeters(summary.amplitude)}</strong>
+            <span>${summary.amplitudeBasis} • ${summary.amplitude >= 2.5 ? 'Maré de Sizígia' : 'Maré de Quadratura'}</span>
+          </div>
+        </div>`;
+    }
+
+    function drawChart(events, etaMin, tideAtEta, windowInfo) {
+      const svg = $('chart');
+      const W = 760;
+      const H = 230;
+      const left = 46;
+      const right = 16;
+      const top = 16;
+      const bottom = 32;
+      const innerW = W - left - right;
+      const innerH = H - top - bottom;
+
+      const minT = 0;
+      const maxT = 24 * 60;
+      const heights = events.map(e => e.height).concat([tideAtEta]);
+      const channelDepth = parseFloat($('channelDepth').value || 0);
+      const draft = parseFloat($('draft').value || 0);
+      const ukcMin = parseFloat($('ukcMin').value || 0);
+      const requiredDepth = draft + ukcMin;
+      const requiredTide = Math.max(0, requiredDepth - channelDepth);
+
+      const minH = Math.min(...heights, requiredTide) - 0.15;
+      const maxH = Math.max(...heights, requiredTide) + 0.15;
+
+      const x = (min) => left + ((min - minT) / (maxT - minT)) * innerW;
+      const y = (h) => top + (1 - (h - minH) / (maxH - minH)) * innerH;
+
+      const points = [];
+      for (let m = 0; m <= 24 * 60; m += 10) {
+        const segment = getSegment(events, m);
+        if (!segment) continue;
+        const [a, b] = segment;
+        points.push(`${x(m)},${y(interpolateHeight(a, b, m))}`);
+      }
+
+      const grid = [];
+      for (let h = 0; h <= 24; h += 3) {
+        const xv = x(h * 60);
+        grid.push(`<line x1="${xv}" y1="${top}" x2="${xv}" y2="${top + innerH}" stroke="rgba(255,255,255,0.08)" />`);
+        if (h < 24) {
+          grid.push(`<text x="${xv}" y="${H - 10}" fill="#9fb8ca" font-size="11" text-anchor="middle">${String(h).padStart(2,'0')}:00</text>`);
+        }
+      }
+
+      for (let i = 0; i <= 4; i++) {
+        const hv = minH + ((maxH - minH) / 4) * i;
+        const yv = y(hv);
+        grid.push(`<line x1="${left}" y1="${yv}" x2="${left + innerW}" y2="${yv}" stroke="rgba(255,255,255,0.08)" />`);
+        grid.push(`<text x="8" y="${yv + 4}" fill="#9fb8ca" font-size="11">${hv.toFixed(2)}m</text>`);
+      }
+
+      const requiredY = y(requiredTide);
+
+      const visibleEvents = events.filter(e => e.minute >= 0 && e.minute <= 1440);
+      const eventDots = visibleEvents.map(e => `
+        <circle cx="${x(e.minute)}" cy="${y(e.height)}" r="4.5" fill="#ffffff" />
+        <text x="${x(e.minute)}" y="${y(e.height) - 10}" fill="#dbe8f3" font-size="11" text-anchor="middle">${e.time}</text>
+      `).join('');
+
+      const etaX = x(etaMin);
+      const etaY = y(tideAtEta);
+
+      let windowBand = '';
+      if (windowInfo) {
+        const x1 = x(windowInfo.start);
+        const x2 = x(windowInfo.end);
+        windowBand = `<rect x="${x1}" y="${top}" width="${Math.max(2, x2 - x1)}" height="${innerH}" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.18)" />`;
+      }
+
+      const requiredLine = `
+        <line x1="${left}" y1="${requiredY}" x2="${left + innerW}" y2="${requiredY}" stroke="rgba(239,68,68,0.9)" stroke-dasharray="6 4" stroke-width="2" />
+        <text x="${left + 8}" y="${requiredY - 8}" fill="#ffc3c3" font-size="11">Profundidade mínima necessária</text>
+      `;
+
+      svg.innerHTML = `
+        ${grid.join('')}
+        ${windowBand}
+        ${requiredLine}
+        <polyline fill="none" stroke="#38bdf8" stroke-width="3" points="${points.join(' ')}" />
+        ${eventDots}
+        <line x1="${etaX}" y1="${top}" x2="${etaX}" y2="${top + innerH}" stroke="rgba(34,197,94,0.45)" stroke-dasharray="5 4" />
+        <circle cx="${etaX}" cy="${etaY}" r="5.5" fill="#22c55e" />
+        <text x="${etaX}" y="${etaY - 12}" fill="#b7f7ca" font-size="12" text-anchor="middle">ETA</text>
+      `;
+    }
+
+    function showNoData(message) {
+      $('eventsBox').innerHTML = `<div class="event"><div><strong>Sem dados</strong><span>${message}</span></div></div>`;
+      $('status').className = 'status warn';
+      $('status').textContent = '🟡 Aguardando dados';
+    }
+
+    async function loadPortData(portId) {
+      const port = PORTS[portId];
+      if (!port) {
+        showNoData('Porto não configurado.');
+        return;
+      }
+
+      currentPortMeta = port;
+      $('portBadge').textContent = port.name;
+      $('calcMethodNote').textContent = port.method === 'sinusoidal'
+        ? 'Cálculo da maré no ETA pelo método sinusoidal contínuo equivalente ao procedimento da DG6-62.'
+        : 'Para este porto, o painel usa interpolação linear. O material DG6-62 informa que a tabela sinusoidal deve ser usada apenas do porto de Vitória para o Norte.';
+
+      try {
+        const response = await fetch(port.file);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const portJson = await response.json();
+        tideData = portJson.days || {};
+
+        const firstDate = Object.keys(tideData).sort()[0];
+        if (firstDate && !tideData[$('data').value]) {
+          $('data').value = firstDate;
+        }
+
+        update();
+      } catch (error) {
+        console.error('Erro ao carregar JSON do porto:', error);
+        tideData = {};
+        showNoData(`Não foi possível carregar ${port.file}. Abra este HTML por servidor local, por exemplo: python3 -m http.server 8000`);
+      }
+    }
+
+    function update() {
+      const date = $('data').value;
+      const eta = $('eta').value;
+      const channelDepth = parseFloat($('channelDepth').value || '0');
+      const draft = parseFloat($('draft').value || '0');
+      const ukcMin = parseFloat($('ukcMin').value || '0');
+      const events = tideData[date];
+
+      if (!events) {
+        $('eventsBox').innerHTML = '<div class="event"><div><strong>Sem dados</strong><span>Cadastre a tábua deste dia para habilitar o cálculo.</span></div></div>';
+        return;
+      }
+
+      const etaMin = timeToMinutes(eta);
+      currentEtaMin = etaMin;
+      const extendedEvents = buildExtendedEvents(date, events);
+      const [a, b] = getSegment(extendedEvents, etaMin);
+      const tideAtEta = interpolateHeight(a, b, etaMin);
+      const trend = trendBetween(a, b);
+      const tideRateMetersPerHour = (b.height - a.height) / Math.max(1 / 60, ((b.minute - a.minute) / 60));
+      const prevLow = findPreviousLow(extendedEvents, etaMin);
+      const nextLow = findNextLow(extendedEvents, etaMin);
+      const prevHigh = findPreviousHigh(extendedEvents, etaMin);
+      const nextHigh = findNextHigh(extendedEvents, etaMin);
+
+      let amplitude = 0;
+      let lowRef;
+      let highRef;
+      let amplitudeBasis;
+
+      if (trend === 'up') {
+        lowRef = prevLow;
+        highRef = nextHigh;
+        amplitude = highRef.height - lowRef.height;
+        amplitudeBasis = `${lowRef.time} → ${highRef.time}`;
+      } else {
+        highRef = prevHigh;
+        lowRef = nextLow;
+        amplitude = highRef.height - lowRef.height;
+        amplitudeBasis = `${highRef.time} → ${lowRef.time}`;
+      }
+
+      const availableDepth = channelDepth + tideAtEta;
+      const ukc = availableDepth - draft;
+      const requiredDepth = draft + ukcMin;
+      const ukcClearance = ukc - ukcMin;
+      const windowInfo = calculateWindow(extendedEvents, channelDepth, draft, ukcMin);
+
+      $('tideAtEta').textContent = formatMeters(tideAtEta);
+      $('trendText').textContent = trend === 'up' ? '↑ Maré enchendo' : trend === 'down' ? '↓ Maré vazando' : '→ Maré estável';
+      $('trendText').className = `sub trend ${trend}`;
+      $('amplitude').textContent = formatMeters(Math.abs(amplitude));
+      $('amplitudeText').textContent = amplitudeBasis;
+      $('lowRef').textContent = lowRef.time;
+      $('lowRefAlt').textContent = formatMeters(lowRef.height);
+      $('highRef').textContent = highRef.time;
+      const etaHighDiff = formatHourDifference(nextHigh.minute, etaMin);
+      $('etaToHigh').textContent = etaHighDiff.text;
+      $('etaToHighText').textContent = etaHighDiff.direction;
+      $('highRefAlt').textContent = formatMeters(highRef.height);
+      $('availableDepth').textContent = formatMeters(availableDepth);
+      $('ukcValue').textContent = formatMeters(ukc);
+      $('ukcStatus').textContent = ukc >= ukcMin ? 'Acima do UKC mínimo definido' : 'Abaixo do UKC mínimo definido';
+      $('tideRate').textContent = formatRate(tideRateMetersPerHour);
+      $('tideRateText').textContent = trend === 'up' ? 'Maré enchendo no trecho atual' : trend === 'down' ? 'Maré vazando no trecho atual' : 'Maré estável no trecho atual';
+
+      const status = statusForHeight(availableDepth, ukcClearance, requiredDepth);
+      $('status').className = `status ${status.cls}`;
+      $('status').textContent = status.text;
+
+      if (ukcClearance >= 0.5) {
+        $('windowMain').textContent = 'Aberta no ETA';
+        $('windowSub').textContent = `Lâmina disponível ${formatMeters(availableDepth)} para necessidade total de ${formatMeters(requiredDepth)}.`;
+      } else if (ukcClearance >= 0) {
+        $('windowMain').textContent = 'Marginal no ETA';
+        $('windowSub').textContent = `Atende por pouco: sobra operacional de ${formatMeters(ukcClearance)} acima do UKC mínimo.`;
+      } else {
+        $('windowMain').textContent = 'Fechada no ETA';
+        $('windowSub').textContent = `Faltam ${formatMeters(Math.abs(ukcClearance))} para atingir o UKC mínimo de segurança.`;
+      }
+
+      if (windowInfo) {
+        $('windowOpen').textContent = minutesToTime(windowInfo.start);
+        $('windowClose').textContent = minutesToTime(windowInfo.end);
+        $('windowDuration').textContent = formatDuration(windowInfo.duration);
+      } else {
+        $('windowOpen').textContent = '--:--';
+        $('windowClose').textContent = '--:--';
+        $('windowDuration').textContent = '0h00';
+      }
+
+      const etaToHigh = formatHourDifference(nextHigh.minute, etaMin);
+      renderEvents({
+        date: date.split('-').reverse().join('/'),
+        eta,
+        tideAtEta,
+        trend,
+        nextHigh,
+        nextLow,
+        amplitude: Math.abs(amplitude),
+        amplitudeBasis,
+        availableDepth,
+        requiredDepth,
+        ukc,
+        ukcMin,
+        adjustmentText: windowInfo ? formatSignedDelay(windowInfo.etaAdjustment) : 'sem janela disponível',
+        etaToHighText: etaToHigh.text,
+        etaToHighDetail: etaToHigh.direction,
+        tideRate: formatRate(tideRateMetersPerHour),
+        tideRateDetail: trend === 'up' ? 'Maré enchendo' : trend === 'down' ? 'Maré vazando' : 'Maré estável'
+      });
+
+      drawChart(extendedEvents, etaMin, tideAtEta, windowInfo);
+    }
+
+    $('porto').addEventListener('change', (event) => {
+      loadPortData(event.target.value);
+    });
+    $('data').addEventListener('input', update);
+    $('eta').addEventListener('input', update);
+    $('channelDepth').addEventListener('input', update);
+    $('draft').addEventListener('input', update);
+    $('ukcMin').addEventListener('input', update);
+    loadPortData($('porto').value);
+  </script>
+</body>
+</html>

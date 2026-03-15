@@ -1,0 +1,18 @@
+from flask import Flask, send_from_directory
+
+app = Flask(__name__, static_folder='.')
+
+@app.route("/")
+def index():
+    return send_from_directory(".", "index.html")
+
+@app.route("/data/tides/<path:filename>")
+def tides(filename):
+    return send_from_directory("data/tides", filename)
+
+@app.route("/<path:filename>")
+def static_files(filename):
+    return send_from_directory(".", filename)
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
