@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9ZWN759NS6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-9ZWN759NS6');
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-9ZWN759NS6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-9ZWN759NS6');
+  </script>
   <title>Painel Operacional de Maré — Porto do Rio</title>
   <style>
     :root {
@@ -350,6 +350,7 @@
     <div class="grid">
       <section class="panel">
         <h2>Consulta operacional</h2>
+
         <div class="controls">
           <div class="field">
             <label for="porto">Porto</label>
@@ -411,10 +412,13 @@
               <option value="porto-do-rio-grande">55 — Porto do Rio Grande</option>
               <option value="fundeadouro-da-estacao-antartica-comandante-ferraz">56 — Fundeadouro Estação Antártica Comandante Ferraz</option>
             </select>
-         <div class="field">
-  <label for="data">Data</label>
-  <input id="data" type="date" />
-</div>
+          </div>
+
+          <div class="field">
+            <label for="data">Data</label>
+            <input id="data" type="date" />
+          </div>
+
           <div class="field">
             <label for="eta">Hora</label>
             <input id="eta" type="time" value="15:00" />
@@ -510,7 +514,7 @@
             <div><span class="dot" style="background:#22c55e"></span>ETA</div>
             <div><span class="dot" style="background:#ef4444"></span>Profundidade mínima necessária</div>
           </div>
-          </div>
+        </div>
       </section>
 
       <aside class="panel">
@@ -519,9 +523,7 @@
         <div class="mini-note" id="calcMethodNote">
           Cálculo da maré no ETA pelo método sinusoidal contínuo equivalente ao procedimento da DG6-62. Para portos ao sul de Vitória, o painel mantém fallback linear, conforme observação do material de referência.
         </div>
-        <div class="footer">
-          
-        </div>
+        <div class="footer"></div>
       </aside>
     </div>
   </div>
@@ -1074,7 +1076,7 @@
 
       const etaToHigh = formatHourDifference(nextHigh.minute, etaMin);
       renderEvents({
-        date: date.split('-').reverse().join('/'),
+        date: new Date(date + 'T00:00:00').toLocaleDateString('pt-BR'),
         eta,
         tideAtEta,
         trend,
@@ -1104,15 +1106,15 @@
     $('channelDepth').addEventListener('input', update);
     $('draft').addEventListener('input', update);
     $('ukcMin').addEventListener('input', update);
-    // definir data atual automaticamente
-(function () {
-  const hoje = new Date();
-  const yyyy = hoje.getFullYear();
-  const mm = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoje.getDate()).padStart(2, '0');
 
-  document.getElementById("data").value = `${yyyy}-${mm}-${dd}`;
-})();
+    (function () {
+      const hoje = new Date();
+      const yyyy = hoje.getFullYear();
+      const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoje.getDate()).padStart(2, '0');
+      document.getElementById('data').value = `${yyyy}-${mm}-${dd}`;
+    })();
+
     loadPortData($('porto').value);
   </script>
 </body>
