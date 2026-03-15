@@ -411,11 +411,10 @@
               <option value="porto-do-rio-grande">55 — Porto do Rio Grande</option>
               <option value="fundeadouro-da-estacao-antartica-comandante-ferraz">56 — Fundeadouro Estação Antártica Comandante Ferraz</option>
             </select>
-          </div>
-          <div class="field">
-            <label for="data">Data</label>
-            <input id="data" type="date" value="2026-03-09" />
-          </div>
+         <div class="field">
+  <label for="data">Data</label>
+  <input id="data" type="date" />
+</div>
           <div class="field">
             <label for="eta">Hora</label>
             <input id="eta" type="time" value="15:00" />
@@ -1105,6 +1104,15 @@
     $('channelDepth').addEventListener('input', update);
     $('draft').addEventListener('input', update);
     $('ukcMin').addEventListener('input', update);
+    // definir data atual automaticamente
+(function () {
+  const hoje = new Date();
+  const yyyy = hoje.getFullYear();
+  const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoje.getDate()).padStart(2, '0');
+
+  document.getElementById("data").value = `${yyyy}-${mm}-${dd}`;
+})();
     loadPortData($('porto').value);
   </script>
 </body>
